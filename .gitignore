@@ -5,3 +5,5 @@ ve/
 *_priv.py
 .coverage
 coverage-html/
+dist/
+build/
