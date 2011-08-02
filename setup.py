@@ -1,5 +1,4 @@
 from setuptools import setup, find_packages
-import sys
 
 def listify(filename):
     return filter(None, open(filename, 'r').readlines())
@@ -10,11 +9,11 @@ setup(
     url = 'http://github.com/dmaclay/python-smpp',
     license = 'BSD',
     description = "Python SMPP Library",
-    long_description = open(sys.path[0] + '/README.rst','r').read(),
+    long_description = open('README.rst','r').read(),
     author = 'David Maclay',
     author_email = 'dev@praekeltfoundation.org',
     packages = find_packages(),
-    install_requires = ['setuptools'].extend(listify(sys.path[0] + '/requirements.pip')),
+    install_requires = ['setuptools'].extend(listify('requirements.pip')),
     classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
