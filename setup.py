@@ -6,7 +6,7 @@ def listify(filename):
 
 setup(
     name="python-smpp",
-    version="0.1.2",
+    version="0.1.3",
     url='http://github.com/praekelt/python-smpp',
     license='BSD',
     description="Python SMPP Library",
