@@ -615,7 +615,7 @@ optional_parameter_tag_by_hex = {
     '0201':{'hex':'0201', 'name':'privacy_indicator',            'type':'integer', 'tech':'CDMA, TDMA'},            # SMPP v3.4, section 5.3.2.14, page 141
     '0202':{'hex':'0202', 'name':'source_subaddress',            'type':'hex',     'tech':'CDMA, TDMA'},            # SMPP v3.4, section 5.3.2.15, page 142
     '0203':{'hex':'0203', 'name':'dest_subaddress',              'type':'hex',     'tech':'CDMA, TDMA'},            # SMPP v3.4, section 5.3.2.16, page 143
-    '0204':{'hex':'0204', 'name':'user_message_reference',       'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.17, page 143
+    '0204':{'hex':'0204', 'name':'user_message_reference',       'type':'integer', 'tech':'Generic', 'min': 2},     # SMPP v3.4, section 5.3.2.17, page 143
     '0205':{'hex':'0205', 'name':'user_response_code',           'type':'integer', 'tech':'CDMA, TDMA'},            # SMPP v3.4, section 5.3.2.18, page 144
 
     '020a':{'hex':'020a', 'name':'source_port',                  'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.20, page 145
@@ -695,6 +695,10 @@ def optional_parameter_tag_name_by_hex(x):
 
 def optional_parameter_tag_type_by_hex(x):
     return optional_parameter_tag_by_hex.get(x,{}).get('type')
+
+
+def optional_parameter_tag_min_by_hex(x):
+    return optional_parameter_tag_by_hex.get(x, {}).get('min', 0)
 
 
 optional_parameter_tag_by_name = {
@@ -1009,8 +1013,10 @@ def encode_optional_parameter(tag, value):
     tag_hex = optional_parameter_tag_hex_by_name(tag)
     if tag_hex != None:
         value_hex = encode_param_type(
-                value,
-                optional_parameter_tag_type_by_hex(tag_hex))
+            value,
+            optional_parameter_tag_type_by_hex(tag_hex),
+            optional_parameter_tag_min_by_hex(tag_hex),
+        )
         length_hex = '%04x' % (len(value_hex)/2)
         optional_hex_array.append(tag_hex + length_hex + value_hex)
     return ''.join(optional_hex_array)

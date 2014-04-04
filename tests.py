@@ -275,6 +275,23 @@ class PduTestCase(unittest.TestCase):
             unpack_pdu(pack_pdu(submit_sm))
         )
 
+    def test_optional_param_length(self):
+        # Variable length hex string.
+        self.assertEqual(
+            '04240000', encode_optional_parameter('message_payload', ''))
+        self.assertEqual(
+            '04240004deadbeef',
+            encode_optional_parameter('message_payload', 'deadbeef'))
+
+        # Fixed length integer.
+        self.assertEqual(
+            '020400020000',
+            encode_optional_parameter('user_message_reference', 0))
+        self.assertEqual(
+            '0204000201ff',
+            encode_optional_parameter('user_message_reference', 511))
+
+
 class PduBuilderTestCase(unittest.TestCase):
 
     def test_true(self):
