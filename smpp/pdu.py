@@ -595,14 +595,14 @@ optional_parameter_tag_by_hex = {
     '0005':{'hex':'0005', 'name':'dest_addr_subunit',            'type':'integer', 'tech':'GSM'},                   # SMPP v3.4, section 5.3.2.1, page 134
     '0006':{'hex':'0006', 'name':'dest_network_type',            'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.3, page 135
     '0007':{'hex':'0007', 'name':'dest_bearer_type',             'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.5, page 136
-    '0008':{'hex':'0008', 'name':'dest_telematics_id',           'type':'integer', 'tech':'GSM'},                   # SMPP v3.4, section 5.3.2.7, page 137
+    '0008':{'hex':'0008', 'name':'dest_telematics_id',           'type':'integer', 'tech':'GSM', 'min': 2},         # SMPP v3.4, section 5.3.2.7, page 137
 
     '000d':{'hex':'000d', 'name':'source_addr_subunit',          'type':'integer', 'tech':'GSM'},                   # SMPP v3.4, section 5.3.2.2, page 134
     '000e':{'hex':'000e', 'name':'source_network_type',          'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.4, page 135
     '000f':{'hex':'000f', 'name':'source_bearer_type',           'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.6, page 136
     '0010':{'hex':'0010', 'name':'source_telematics_id',         'type':'integer', 'tech':'GSM'},                   # SMPP v3.4, section 5.3.2.8, page 137
 
-    '0017':{'hex':'0017', 'name':'qos_time_to_live',             'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.9, page 138
+    '0017':{'hex':'0017', 'name':'qos_time_to_live',             'type':'integer', 'tech':'Generic', 'min': 4},     # SMPP v3.4, section 5.3.2.9, page 138
     '0019':{'hex':'0019', 'name':'payload_type',                 'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.10, page 138
 
     '001d':{'hex':'001d', 'name':'additional_status_info_text',  'type':'string',  'tech':'Generic'},               # SMPP v3.4, section 5.3.2.11, page 139
@@ -613,14 +613,14 @@ optional_parameter_tag_by_hex = {
     '0101':{'hex':'0101', 'name':'PVCY_AuthenticationStr',       'type':None,      'tech':'? (J-Phone)'},           # v4 page 58-62
 
     '0201':{'hex':'0201', 'name':'privacy_indicator',            'type':'integer', 'tech':'CDMA, TDMA'},            # SMPP v3.4, section 5.3.2.14, page 141
-    '0202':{'hex':'0202', 'name':'source_subaddress',            'type':'hex',     'tech':'CDMA, TDMA'},            # SMPP v3.4, section 5.3.2.15, page 142
-    '0203':{'hex':'0203', 'name':'dest_subaddress',              'type':'hex',     'tech':'CDMA, TDMA'},            # SMPP v3.4, section 5.3.2.16, page 143
+    '0202':{'hex':'0202', 'name':'source_subaddress',            'type':'hex',     'tech':'CDMA, TDMA', 'min': 2},  # SMPP v3.4, section 5.3.2.15, page 142
+    '0203':{'hex':'0203', 'name':'dest_subaddress',              'type':'hex',     'tech':'CDMA, TDMA', 'min': 2},  # SMPP v3.4, section 5.3.2.16, page 143
     '0204':{'hex':'0204', 'name':'user_message_reference',       'type':'integer', 'tech':'Generic', 'min': 2},     # SMPP v3.4, section 5.3.2.17, page 143
     '0205':{'hex':'0205', 'name':'user_response_code',           'type':'integer', 'tech':'CDMA, TDMA'},            # SMPP v3.4, section 5.3.2.18, page 144
 
-    '020a':{'hex':'020a', 'name':'source_port',                  'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.20, page 145
-    '020b':{'hex':'020b', 'name':'destination_port',             'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.21, page 145
-    '020c':{'hex':'020c', 'name':'sar_msg_ref_num',              'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.22, page 146
+    '020a':{'hex':'020a', 'name':'source_port',                  'type':'integer', 'tech':'Generic', 'min': 2},     # SMPP v3.4, section 5.3.2.20, page 145
+    '020b':{'hex':'020b', 'name':'destination_port',             'type':'integer', 'tech':'Generic', 'min': 2},     # SMPP v3.4, section 5.3.2.21, page 145
+    '020c':{'hex':'020c', 'name':'sar_msg_ref_num',              'type':'integer', 'tech':'Generic', 'min': 2},     # SMPP v3.4, section 5.3.2.22, page 146
     '020d':{'hex':'020d', 'name':'language_indicator',           'type':'integer', 'tech':'CDMA, TDMA'},            # SMPP v3.4, section 5.3.2.19, page 144
     '020e':{'hex':'020e', 'name':'sar_total_segments',           'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.23, page 147
     '020f':{'hex':'020f', 'name':'sar_segment_seqnum',           'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.24, page 147
@@ -630,12 +630,12 @@ optional_parameter_tag_by_hex = {
     '0302':{'hex':'0302', 'name':'callback_num_pres_ind',        'type':'bitmask', 'tech':'TDMA'},                  # SMPP v3.4, section 5.3.2.37, page 156
     '0303':{'hex':'0303', 'name':'callback_num_atag',            'type':'hex',     'tech':'TDMA'},                  # SMPP v3.4, section 5.3.2.38, page 157
     '0304':{'hex':'0304', 'name':'number_of_messages',           'type':'integer', 'tech':'CDMA'},                  # SMPP v3.4, section 5.3.2.39, page 158
-    '0381':{'hex':'0381', 'name':'callback_num',                 'type':'hex',     'tech':'CDMA, TDMA, GSM, iDEN'}, # SMPP v3.4, section 5.3.2.36, page 155
+    '0381':{'hex':'0381', 'name':'callback_num',                 'type':'hex',     'tech':'CDMA, TDMA, GSM, iDEN', 'min': 4}, # SMPP v3.4, section 5.3.2.36, page 155
 
     '0420':{'hex':'0420', 'name':'dpf_result',                   'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.28, page 149
     '0421':{'hex':'0421', 'name':'set_dpf',                      'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.29, page 150
     '0422':{'hex':'0422', 'name':'ms_availability_status',       'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.30, page 151
-    '0423':{'hex':'0423', 'name':'network_error_code',           'type':'hex',     'tech':'Generic'},               # SMPP v3.4, section 5.3.2.31, page 152
+    '0423':{'hex':'0423', 'name':'network_error_code',           'type':'hex',     'tech':'Generic', 'min': 3},     # SMPP v3.4, section 5.3.2.31, page 152
     '0424':{'hex':'0424', 'name':'message_payload',              'type':'hex',     'tech':'Generic'},               # SMPP v3.4, section 5.3.2.32, page 153
     '0425':{'hex':'0425', 'name':'delivery_failure_reason',      'type':'integer', 'tech':'Generic'},               # SMPP v3.4, section 5.3.2.33, page 153
     '0426':{'hex':'0426', 'name':'more_messages_to_send',        'type':'integer', 'tech':'GSM'},                   # SMPP v3.4, section 5.3.2.34, page 154
@@ -674,7 +674,7 @@ optional_parameter_tag_by_hex = {
 
     '1201':{'hex':'1201', 'name':'display_time',                 'type':'integer', 'tech':'CDMA, TDMA'},            # SMPP v3.4, section 5.3.2.26, page 148
 
-    '1203':{'hex':'1203', 'name':'sms_signal',                   'type':'integer', 'tech':'TDMA'},                  # SMPP v3.4, section 5.3.2.40, page 158
+    '1203':{'hex':'1203', 'name':'sms_signal',                   'type':'integer', 'tech':'TDMA', 'min': 2},        # SMPP v3.4, section 5.3.2.40, page 158
     '1204':{'hex':'1204', 'name':'ms_validity',                  'type':'integer', 'tech':'CDMA, TDMA'},            # SMPP v3.4, section 5.3.2.27, page 149
 
     '1304':{'hex':'1304', 'name':'IS95A_AlertOnDelivery',        'type':None,      'tech':'CDMA'},                  # v4 page 85
@@ -683,7 +683,7 @@ optional_parameter_tag_by_hex = {
     '130c':{'hex':'130c', 'name':'alert_on_message_delivery',    'type':None,      'tech':'CDMA'},                  # SMPP v3.4, section 5.3.2.41, page 159
 
     '1380':{'hex':'1380', 'name':'its_reply_type',               'type':'integer', 'tech':'CDMA'},                  # SMPP v3.4, section 5.3.2.42, page 159
-    '1383':{'hex':'1383', 'name':'its_session_info',             'type':'hex',     'tech':'CDMA'},                  # SMPP v3.4, section 5.3.2.43, page 160
+    '1383':{'hex':'1383', 'name':'its_session_info',             'type':'hex',     'tech':'CDMA', 'min': 2},        # SMPP v3.4, section 5.3.2.43, page 160
 
     '1402':{'hex':'1402', 'name':'operator_id',                  'type':None,      'tech':'vendor extension'},
     '1403':{'hex':'1403', 'name':'tariff',                       'type':None,      'tech':'Mobile Network Code vendor extension'},
