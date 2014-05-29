@@ -291,13 +291,46 @@ class PduTestCase(unittest.TestCase):
             '0204000201ff',
             encode_optional_parameter('user_message_reference', 511))
 
+    def test_encode_param_type_no_value(self):
+        self.assertEqual(encode_param_type(None, 'integer'), None)
+        self.assertEqual(encode_param_type(None, 'string'), None)
+        self.assertEqual(encode_param_type(None, 'xstring'), None)
+        self.assertEqual(encode_param_type(None, 'bitmask'), None)
+        self.assertEqual(encode_param_type(None, 'hex'), None)
+
+    def test_encode_param_type_integer(self):
+        self.assertEqual(encode_param_type(0, 'integer'), '00')
+        self.assertEqual(encode_param_type(1, 'integer'), '01')
+        self.assertEqual(encode_param_type(255, 'integer'), 'ff')
+        self.assertEqual(encode_param_type(256, 'integer'), '0100')
+
+        self.assertEqual(encode_param_type(0, 'integer', min=2), '0000')
+        self.assertEqual(encode_param_type(255, 'integer', min=2), '00ff')
+        self.assertEqual(encode_param_type(256, 'integer', min=2), '0100')
+
+        self.assertEqual(encode_param_type(255, 'integer', max=1), 'ff')
+        self.assertRaises(ValueError, encode_param_type, 256, 'integer', max=1)
+
+    def test_encode_param_type_string(self):
+        self.assertEqual(encode_param_type('', 'string'), '00')
+        self.assertEqual(encode_param_type('ABC', 'string'), '41424300')
+        self.assertEqual(encode_param_type('ABC', 'string', max=4), '41424300')
+        self.assertRaises(
+            ValueError, encode_param_type, 'ABC', 'string', max=3)
+
+    def test_encode_param_type_xstring(self):
+        self.assertEqual(encode_param_type('', 'xstring'), '')
+        self.assertEqual(encode_param_type('ABC', 'xstring'), '414243')
+        self.assertEqual(encode_param_type('ABC', 'xstring', max=3), '414243')
+        self.assertRaises(
+            ValueError, encode_param_type, 'ABC', 'xstring', max=2)
+
 
 class PduBuilderTestCase(unittest.TestCase):
-
-    def test_true(self):
-        print ''
-        self.assertTrue(True)
-
+    def test_submit_sm_message_too_long(self):
+        short_message = '1234567890' * 26
+        submit_sm = SubmitSM(5, short_message=short_message)
+        self.assertRaises(ValueError, submit_sm.get_hex)
 
 
 if __name__ == '__main__':

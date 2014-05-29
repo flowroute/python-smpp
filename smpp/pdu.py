@@ -1046,7 +1046,6 @@ def encode_param_type(param, type, min=0, max=None, map=None):
         if len(hex) % 2:
             # pad odd length hex strings
             hex = '0' + hex
-    #print type, min, max, repr(param), hex, map
+    if None not in (max, hex) and len(hex) > 2 * max:
+        raise ValueError("Value exceeds maximum size of %s." % (max,))
     return hex
-
-
