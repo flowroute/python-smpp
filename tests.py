@@ -6,8 +6,11 @@ from smpp.esme import *
 from smpp.clickatell import *
 from smpp import pdu
 import credentials_test
-try:import credentials_priv
-except:pass
+
+try:
+    import credentials_priv
+except ImportError:
+    pass
 
 from test.pdu import pdu_objects
 from test import pdu_asserts
@@ -54,29 +57,29 @@ def create_pdu_asserts():
         pstr += " = '''"
         pstr += prettydump(unpack_pdu(pack_pdu(pdu)))
         pstr += "'''"
-        print pstr
+        # print pstr
 
 
 def create_pdu_hex_asserts():
     pdu_index = 0
     for pdu_hex in pdu_hex_strings:
         pdu_index += 1
-        pstr  = "\n########################################\n"
+        pstr = "\n########################################\n"
         pstr += "pdu_json_"
         pstr += ('%010d' % pdu_index)
         pstr += " = '''"
         pstr += prettydump(unpack_hex(pdu_hex))
         pstr += "'''"
-        print pstr
+        # print pstr
 
 
-## :w|!python % > test/pdu_asserts.py
-#create_pdu_asserts()
-#quit()
+# # :w|!python % > test/pdu_asserts.py
+# create_pdu_asserts()
+# quit()
 
-## :w|!python % > test/pdu_hex_asserts.py
-#create_pdu_hex_asserts()
-#quit()
+# # :w|!python % > test/pdu_hex_asserts.py
+# create_pdu_hex_asserts()
+# quit()
 
 
 class PduTestCase(unittest.TestCase):
@@ -95,10 +98,10 @@ class PduTestCase(unittest.TestCase):
         """
         d1_keys = dictionary1.keys()
         d1_keys.sort()
-        
+
         d2_keys = dictionary2.keys()
         d2_keys.sort()
-        
+
         self.failUnlessEqual(d1_keys, d2_keys, 
             "Dictionary keys do not match, %s vs %s" % (
                 d1_keys, d2_keys))
@@ -114,9 +117,8 @@ class PduTestCase(unittest.TestCase):
                     "Dictionary 2: %s\n" % (
                         key, value, dictionary2[key], ".".join(depth),
                         prettydump(dictionary1), prettydump(dictionary2)))
-    
+
     def test_pack_unpack_pdu_objects(self):
-        print ''
         """
         Take a dictionary, pack and unpack it and dump it as JSON correctly
         """
@@ -124,7 +126,6 @@ class PduTestCase(unittest.TestCase):
         for pdu in pdu_objects:
             pdu_index += 1
             padded_index = '%010d' % pdu_index
-            print '...', padded_index
             self.assertEquals(
                     re.sub('\n *','',
                         prettydump(unpack_pdu(pack_pdu(pdu)))),
@@ -133,7 +134,6 @@ class PduTestCase(unittest.TestCase):
 
 
     def test_pack_unpack_pdu_hex_strings(self):
-        print ''
         """
         Read the hex data, clean it, and unpack it to JSON correctly
         """
@@ -141,7 +141,6 @@ class PduTestCase(unittest.TestCase):
         for pdu_hex in pdu_hex_strings:
             pdu_index += 1
             padded_index = '%010d' % pdu_index
-            print '...', padded_index
             self.assertEquals(
                     re.sub('\n *','',
                         prettydump(unpack_hex(pdu_hex))),
@@ -150,7 +149,6 @@ class PduTestCase(unittest.TestCase):
 
 
     def test_pack_unpack_performance(self):
-        print ''
         """
         Pack & unpack 500 submit_sm PDUs in under 1 second
         """
@@ -192,7 +190,6 @@ class PduTestCase(unittest.TestCase):
             submit_sm['body']['mandatory_parameters']['short_message'] = sm
             u = unpack_pdu(pack_pdu(submit_sm))
         delta = datetime.now() - start
-        print '... 500 pack & unpacks in:', delta
         self.assertTrue(delta < timedelta(seconds=1))
 
     def test_pack_unpack_of_unicode(self):
@@ -334,41 +331,41 @@ class PduBuilderTestCase(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    print '\n##########################################################\n'
-    #deliv_sm_resp = DeliverSMResp(23)
-    #print deliv_sm_resp.get_obj()
-    #print deliv_sm_resp.get_hex()
-    #enq_lnk = EnquireLink(7)
-    #print enq_lnk.get_obj()
-    #print enq_lnk.get_hex()
-    #sub_sm = SubmitSM(5, short_message='testing testing')
-    #print sub_sm.get_obj()
-    #print sub_sm.get_hex()
-    #sub_sm.add_message_payload('01020304')
-    #print sub_sm.get_obj()
-    #print sub_sm.get_hex()
-    #print unpack_pdu(sub_sm.get_bin())
-    print '\n##########################################################\n'
+    # print '\n##########################################################\n'
+    # deliv_sm_resp = DeliverSMResp(23)
+    # print deliv_sm_resp.get_obj()
+    # print deliv_sm_resp.get_hex()
+    # enq_lnk = EnquireLink(7)
+    # print enq_lnk.get_obj()
+    # print enq_lnk.get_hex()
+    # sub_sm = SubmitSM(5, short_message='testing testing')
+    # print sub_sm.get_obj()
+    # print sub_sm.get_hex()
+    # sub_sm.add_message_payload('01020304')
+    # print sub_sm.get_obj()
+    # print sub_sm.get_hex()
+    # print unpack_pdu(sub_sm.get_bin())
+    # print '\n##########################################################\n'
 
     esme = ESME()
     esme.loadDefaults(clickatell_defaults)
     esme.loadDefaults(credentials_test.logica)
-    print esme.defaults
+    # print esme.defaults
     esme.bind_transmitter()
-    print esme.state
+    # print esme.state
     start = datetime.now()
     for x in range(1):
         esme.submit_sm(
                 short_message = 'gobbledygook',
                 destination_addr = '555',
                 )
-        print esme.state
+        # print esme.state
     for x in range(1):
         esme.submit_multi(
                 short_message = 'gobbledygook',
                 dest_address = ['444','333'],
                 )
-        print esme.state
+        # print esme.state
     for x in range(1):
         esme.submit_multi(
                 short_message = 'gobbledygook',
@@ -377,11 +374,11 @@ if __name__ == '__main__':
                     {'dest_flag':2, 'dl_name':'list22222'},
                     ],
                 )
-        print esme.state
+        # print esme.state
     delta = datetime.now() - start
     esme.disconnect()
-    print esme.state
-    print 'excluding binding ... time to send messages =', delta
+    # print esme.state
+    # print 'excluding binding ... time to send messages =', delta
 
 
 #if __name__ == '__main__':

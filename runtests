@@ -1,0 +1,3 @@
+#!/bin/bash
+
+PYTHONDONTWRITEBYTECODE=true ve/bin/nosetests --with-doctest --with-nosejob --color --with-expectedfailures $@
