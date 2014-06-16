@@ -1,9 +1,12 @@
+from __future__ import absolute_import
+
 import socket
 
-from esme import *
+from smpp.esme import ESME
+from smpp.pdu import pack_pdu
 
 
-class SMSC(ESME): # this is a dummy SMSC, just for testing
+class SMSC(ESME):  # this is a dummy SMSC, just for testing
 
     def __init__(self, port=2775, credentials={}):
         self.credentials = credentials
@@ -14,10 +17,10 @@ class SMSC(ESME): # this is a dummy SMSC, just for testing
         print 'Connected by', self.addr
         while 1:
             pdu = self._ESME__recv()
-            if not pdu: break
+            if not pdu:
+                break
             self.conn.send(pack_pdu(self.__response(pdu)))
         self.conn.close()
-
 
     def __response(self, pdu):
         pdu_resp = {}
@@ -51,9 +54,9 @@ class SMSC(ESME): # this is a dummy SMSC, just for testing
             pdu_resp['body'] = resp_body
             resp_mandatory_parameters = {}
             resp_body['mandatory_parameters'] = resp_mandatory_parameters
-            resp_mandatory_parameters['system_id'] = pdu['body']['mandatory_parameters']['system_id']
+            resp_mandatory_parameters['system_id'] = \
+                pdu['body']['mandatory_parameters']['system_id']
         if pdu['header']['command_id'] in [
-                #'submit_sm', # message_id is optional in submit_sm
                 'submit_multi',
                 'deliver_sm',
                 'data_sm',
@@ -71,9 +74,3 @@ class SMSC(ESME): # this is a dummy SMSC, just for testing
                 resp_mandatory_parameters['message_state'] = 0
                 resp_mandatory_parameters['error_code'] = 0
         return pdu_resp
-
-
-
-if __name__ == '__main__':
-    smsc = SMSC(2777)
-

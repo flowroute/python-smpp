@@ -1,34 +1,42 @@
 # -*- coding: utf-8 -*-
-import unittest, collections
+import re
+import json
+import unittest
+import collections
 from datetime import datetime, timedelta
 
-from smpp.esme import *
-from smpp.clickatell import *
+from smpp.esme import ESME
+from smpp.clickatell import clickatell_defaults
 from smpp import pdu
+from smpp.pdu_builder import SubmitSM
+from smpp.pdu import (
+    unpack_pdu, pack_pdu, encode_param_type, encode_optional_parameter)
 import credentials_test
 
-try:
-    import credentials_priv
-except ImportError:
-    pass
+# try:
+#     import credentials_priv
+# except ImportError:
+#     pass
 
 from test.pdu import pdu_objects
-from test import pdu_asserts
+from test import pdu_hex_asserts, pdu_asserts  # NOQA
 from test.pdu_hex import pdu_hex_strings
-from test import pdu_hex_asserts
 
 
 def unpack_hex(pdu_hex):
     """Unpack PDU hex string and return it as a dictionary"""
-    return unpack_pdu(binascii.a2b_hex(hexclean(pdu_hex)))
+    return unpack_pdu(pdu.binascii.a2b_hex(hexclean(pdu_hex)))
+
 
 def hexclean(dirtyhex):
     """Remove whitespace, comments & newlines from hex string"""
-    return re.sub(r'\s','',re.sub(r'#.*\n','\n',dirtyhex))
+    return re.sub(r'\s', '', re.sub(r'#.*\n', '\n', dirtyhex))
+
 
 def prettydump(pdu_obj):
     """Unpack PDU dictionary and dump it as a JSON formatted string"""
     return json.dumps(pdu_obj, indent=4, sort_keys=True)
+
 
 def hex_to_named(dictionary):
     """
@@ -47,15 +55,16 @@ def hex_to_named(dictionary):
                 clone[key] = lookup_table.get("%.2d" % value, value)
     return clone
 
+
 def create_pdu_asserts():
     pdu_index = 0
-    for pdu in pdu_objects:
+    for pdu_ in pdu_objects:
         pdu_index += 1
-        pstr  = "\n########################################\n"
+        pstr = "\n########################################\n"
         pstr += "pdu_json_"
         pstr += ('%010d' % pdu_index)
         pstr += " = '''"
-        pstr += prettydump(unpack_pdu(pack_pdu(pdu)))
+        pstr += prettydump(unpack_pdu(pack_pdu(pdu_)))
         pstr += "'''"
         # print pstr
 
@@ -93,7 +102,7 @@ class PduTestCase(unittest.TestCase):
     def assertDictEquals(self, dictionary1, dictionary2, depth=[]):
         """
         Recursive dictionary comparison, will fail if any keys and values
-        in the two dictionaries don't match. Displays the key chain / depth 
+        in the two dictionaries don't match. Displays the key chain / depth
         and which parts of the two dictionaries didn't match.
         """
         d1_keys = dictionary1.keys()
@@ -102,8 +111,9 @@ class PduTestCase(unittest.TestCase):
         d2_keys = dictionary2.keys()
         d2_keys.sort()
 
-        self.failUnlessEqual(d1_keys, d2_keys, 
-            "Dictionary keys do not match, %s vs %s" % (
+        self.failUnlessEqual(
+            d1_keys, d2_keys,
+            "Dictionary keys do not match, {} vs {}".format(
                 d1_keys, d2_keys))
         for key, value in dictionary1.items():
             if isinstance(value, collections.Mapping):
@@ -111,27 +121,29 @@ class PduTestCase(unittest.TestCase):
                 depth.append(key)
                 self.assertDictEquals(value, dictionary2[key], depth)
             else:
-                self.failUnlessEqual(value, dictionary2[key], 
-                    "Dictionary values do not match for key '%s' " \
-                    "(%s vs %s) at depth: %s.\nDictionary 1: %s\n" \
-                    "Dictionary 2: %s\n" % (
-                        key, value, dictionary2[key], ".".join(depth),
-                        prettydump(dictionary1), prettydump(dictionary2)))
+                self.failUnlessEqual(
+                    value, dictionary2[key],
+                    ("Dictionary values do not match for key '%s' "
+                     "(%s vs %s) at depth: %s.\nDictionary 1: %s\n"
+                     "Dictionary 2: %s\n" % (
+                         key, value, dictionary2[key], ".".join(depth),
+                         prettydump(dictionary1), prettydump(dictionary2))))
 
     def test_pack_unpack_pdu_objects(self):
         """
         Take a dictionary, pack and unpack it and dump it as JSON correctly
         """
         pdu_index = 0
-        for pdu in pdu_objects:
+        for pdu_ in pdu_objects:
             pdu_index += 1
             padded_index = '%010d' % pdu_index
             self.assertEquals(
-                    re.sub('\n *','',
-                        prettydump(unpack_pdu(pack_pdu(pdu)))),
-                    re.sub('\n *','',
-                        eval('pdu_asserts.pdu_json_'+padded_index)))
-
+                re.sub(
+                    '\n *', '',
+                    prettydump(unpack_pdu(pack_pdu(pdu_)))),
+                re.sub(
+                    '\n *', '',
+                    eval('pdu_asserts.pdu_json_'+padded_index)))
 
     def test_pack_unpack_pdu_hex_strings(self):
         """
@@ -142,11 +154,12 @@ class PduTestCase(unittest.TestCase):
             pdu_index += 1
             padded_index = '%010d' % pdu_index
             self.assertEquals(
-                    re.sub('\n *','',
-                        prettydump(unpack_hex(pdu_hex))),
-                    re.sub('\n *','',
-                        eval('pdu_hex_asserts.pdu_json_'+padded_index)))
-
+                re.sub(
+                    '\n *', '',
+                    prettydump(unpack_hex(pdu_hex))),
+                re.sub(
+                    '\n *', '',
+                    eval('pdu_hex_asserts.pdu_json_'+padded_index)))
 
     def test_pack_unpack_performance(self):
         """
@@ -161,24 +174,24 @@ class PduTestCase(unittest.TestCase):
             },
             'body': {
                 'mandatory_parameters': {
-                    'service_type':'',
-                    'source_addr_ton':1,
-                    'source_addr_npi':1,
-                    'source_addr':'',
-                    'dest_addr_ton':1,
-                    'dest_addr_npi':1,
-                    'destination_addr':'',
-                    'esm_class':0,
-                    'protocol_id':0,
-                    'priority_flag':0,
-                    'schedule_delivery_time':'',
-                    'validity_period':'',
-                    'registered_delivery':0,
-                    'replace_if_present_flag':0,
-                    'data_coding':0,
-                    'sm_default_msg_id':0,
-                    'sm_length':1,
-                    'short_message':'',
+                    'service_type': '',
+                    'source_addr_ton': 1,
+                    'source_addr_npi': 1,
+                    'source_addr': '',
+                    'dest_addr_ton': 1,
+                    'dest_addr_npi': 1,
+                    'destination_addr': '',
+                    'esm_class': 0,
+                    'protocol_id': 0,
+                    'priority_flag': 0,
+                    'schedule_delivery_time': '',
+                    'validity_period': '',
+                    'registered_delivery': 0,
+                    'replace_if_present_flag': 0,
+                    'data_coding': 0,
+                    'sm_default_msg_id': 0,
+                    'sm_length': 1,
+                    'short_message': '',
                 },
             },
         }
@@ -188,7 +201,7 @@ class PduTestCase(unittest.TestCase):
             submit_sm['header']['sequence_number'] = x
             sm = 'testing: x = '+str(x)+''
             submit_sm['body']['mandatory_parameters']['short_message'] = sm
-            u = unpack_pdu(pack_pdu(submit_sm))
+            unpack_pdu(pack_pdu(submit_sm))
         delta = datetime.now() - start
         self.assertTrue(delta < timedelta(seconds=1))
 
@@ -206,24 +219,25 @@ class PduTestCase(unittest.TestCase):
             },
             'body': {
                 'mandatory_parameters': {
-                    'service_type':'',
-                    'source_addr_ton':'international',
-                    'source_addr_npi':'unknown',
-                    'source_addr':'',
-                    'dest_addr_ton':'international',
-                    'dest_addr_npi':'unknown',
-                    'destination_addr':'',
-                    'esm_class':0,
-                    'protocol_id':0,
-                    'priority_flag':0,
-                    'schedule_delivery_time':'',
-                    'validity_period':'',
-                    'registered_delivery':0,
-                    'replace_if_present_flag':0,
-                    'data_coding':0,
-                    'sm_default_msg_id':0,
-                    'sm_length':34,
-                    'short_message':u'Vumi says: أبن الشرموطة'.encode('utf-8'),
+                    'service_type': '',
+                    'source_addr_ton': 'international',
+                    'source_addr_npi': 'unknown',
+                    'source_addr': '',
+                    'dest_addr_ton': 'international',
+                    'dest_addr_npi': 'unknown',
+                    'destination_addr': '',
+                    'esm_class': 0,
+                    'protocol_id': 0,
+                    'priority_flag': 0,
+                    'schedule_delivery_time': '',
+                    'validity_period': '',
+                    'registered_delivery': 0,
+                    'replace_if_present_flag': 0,
+                    'data_coding': 0,
+                    'sm_default_msg_id': 0,
+                    'sm_length': 34,
+                    'short_message':
+                        u'Vumi says: أبن الشرموطة'.encode('utf-8'),
                 },
             },
         }
@@ -246,24 +260,24 @@ class PduTestCase(unittest.TestCase):
             },
             'body': {
                 'mandatory_parameters': {
-                    'service_type':'',
-                    'source_addr_ton':'international',
-                    'source_addr_npi':'unknown',
-                    'source_addr':'',
-                    'dest_addr_ton':'international',
-                    'dest_addr_npi':'unknown',
-                    'destination_addr':'',
-                    'esm_class':0,
-                    'protocol_id':0,
-                    'priority_flag':0,
-                    'schedule_delivery_time':'',
-                    'validity_period':'',
-                    'registered_delivery':0,
-                    'replace_if_present_flag':0,
-                    'data_coding':0,
-                    'sm_default_msg_id':0,
-                    'sm_length':32,
-                    'short_message':u'a \xf0\x20\u0373\u0020\u0433\u0020\u0533\u0020\u05f3\u0020\u0633\u0020\u13a3\u0020\u16a3 \U0001f090'.encode('utf-8'),
+                    'service_type': '',
+                    'source_addr_ton': 'international',
+                    'source_addr_npi': 'unknown',
+                    'source_addr': '',
+                    'dest_addr_ton': 'international',
+                    'dest_addr_npi': 'unknown',
+                    'destination_addr': '',
+                    'esm_class': 0,
+                    'protocol_id': 0,
+                    'priority_flag': 0,
+                    'schedule_delivery_time': '',
+                    'validity_period': '',
+                    'registered_delivery': 0,
+                    'replace_if_present_flag': 0,
+                    'data_coding': 0,
+                    'sm_default_msg_id': 0,
+                    'sm_length': 32,
+                    'short_message': u'a \xf0\x20\u0373\u0020\u0433\u0020\u0533\u0020\u05f3\u0020\u0633\u0020\u13a3\u0020\u16a3 \U0001f090'.encode('utf-8'),  # NOQA
                 },
             },
         }
@@ -301,26 +315,28 @@ class PduTestCase(unittest.TestCase):
         self.assertEqual(encode_param_type(255, 'integer'), 'ff')
         self.assertEqual(encode_param_type(256, 'integer'), '0100')
 
-        self.assertEqual(encode_param_type(0, 'integer', min=2), '0000')
-        self.assertEqual(encode_param_type(255, 'integer', min=2), '00ff')
-        self.assertEqual(encode_param_type(256, 'integer', min=2), '0100')
+        self.assertEqual(encode_param_type(0, 'integer', min_=2), '0000')
+        self.assertEqual(encode_param_type(255, 'integer', min_=2), '00ff')
+        self.assertEqual(encode_param_type(256, 'integer', min_=2), '0100')
 
-        self.assertEqual(encode_param_type(255, 'integer', max=1), 'ff')
-        self.assertRaises(ValueError, encode_param_type, 256, 'integer', max=1)
+        self.assertEqual(encode_param_type(255, 'integer', max_=1), 'ff')
+        self.assertRaises(
+            ValueError, encode_param_type, 256, 'integer', max_=1)
 
     def test_encode_param_type_string(self):
         self.assertEqual(encode_param_type('', 'string'), '00')
         self.assertEqual(encode_param_type('ABC', 'string'), '41424300')
-        self.assertEqual(encode_param_type('ABC', 'string', max=4), '41424300')
+        self.assertEqual(
+            encode_param_type('ABC', 'string', max_=4), '41424300')
         self.assertRaises(
-            ValueError, encode_param_type, 'ABC', 'string', max=3)
+            ValueError, encode_param_type, 'ABC', 'string', max_=3)
 
     def test_encode_param_type_xstring(self):
         self.assertEqual(encode_param_type('', 'xstring'), '')
         self.assertEqual(encode_param_type('ABC', 'xstring'), '414243')
-        self.assertEqual(encode_param_type('ABC', 'xstring', max=3), '414243')
+        self.assertEqual(encode_param_type('ABC', 'xstring', max_=3), '414243')
         self.assertRaises(
-            ValueError, encode_param_type, 'ABC', 'xstring', max=2)
+            ValueError, encode_param_type, 'ABC', 'xstring', max_=2)
 
 
 class PduBuilderTestCase(unittest.TestCase):
@@ -356,31 +372,25 @@ if __name__ == '__main__':
     start = datetime.now()
     for x in range(1):
         esme.submit_sm(
-                short_message = 'gobbledygook',
-                destination_addr = '555',
-                )
+            short_message='gobbledygook',
+            destination_addr='555')
         # print esme.state
     for x in range(1):
         esme.submit_multi(
-                short_message = 'gobbledygook',
-                dest_address = ['444','333'],
-                )
+            short_message='gobbledygook',
+            dest_address=['444', '333'])
         # print esme.state
     for x in range(1):
         esme.submit_multi(
-                short_message = 'gobbledygook',
-                dest_address = [
-                    {'dest_flag':1, 'destination_addr':'111'},
-                    {'dest_flag':2, 'dl_name':'list22222'},
-                    ],
-                )
-        # print esme.state
+            short_message='gobbledygook',
+            dest_address=[
+                {'dest_flag': 1, 'destination_addr': '111'},
+                {'dest_flag': 2, 'dl_name': 'list22222'},
+                ])
     delta = datetime.now() - start
     esme.disconnect()
     # print esme.state
     # print 'excluding binding ... time to send messages =', delta
 
-
-#if __name__ == '__main__':
-    #unittest.main()
-
+# if __name__ == '__main__':
+    # unittest.main()
